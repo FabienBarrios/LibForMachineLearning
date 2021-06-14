@@ -12,20 +12,18 @@
 DLLEXPORT double *create_linear_model(int input_dim) {
     double *W;
     W = new double[input_dim + 1];
-
     if (W == nullptr) {
         exit(1);
     }
     for (int i = 0; i < input_dim + 1; i++) {
         W[i] = ((double) rand() / (RAND_MAX / 2)) - 1.0;
     }
-
     return W;
 }
 
 DLLEXPORT double predict_linear_model_regression(double *W, double *sample_inputs, int arr_size_model) {
     double result = W[0] * 1.0;   //bias
-    for (int i = 1; i < arr_size_model; i++) {
+    for (int i = 1; i < arr_size_model+1; i++) {
         result += W[i] * sample_inputs[i-1];
     }
     return result;
@@ -59,49 +57,43 @@ DLLEXPORT double predict_linear_model_classification(double *W, double *sample_i
     }
 }
 
-DLLEXPORT void train_classification_rosenblatt_rule_linear_model(double *W,
-                                                                 double *flattened_dataset_inputs,
-                                                                 int sampleCount,
-                                                                 double *flattened_dataset_expected_outputs,
+DLLEXPORT void train_classification_rosenblatt_rule_linear_model(double* W,
+                                                                 double* flattened_dataset_inputs,
+                                                                 double* flattened_dataset_expected_outputs,
+                                                                 int W_len,
+                                                                 int flattened_inputs_len,
                                                                  double alpha,
-                                                                 int epochs) {
-
-//    for (int it = 0; it < epochs; it++){
-//        int k = rand() % sampleCount;
-//        double Yk = flattened_dataset_expected_outputs[k];
-//        double *Xk = new double[sampleCount];
-//        for(int x_index = 0, flattened_dataset_inputs_index = k* sampleCount; x_index < sampleCount; x_index++, flattened_dataset_inputs_index++){
-//            Xk[x_index] = flattened_dataset_inputs[flattened_dataset_inputs_index];
-//        }
-//        double gXk = predict_linear_model_classification(W, Xk, sampleCount);
-//        W[0] += alpha * (Yk - gXk) * 1.0;
-//        for(int i=1; i < (sampleCount+1); i++){
-//            W[k] += alpha * (Yk - gXk)* Xk[i - 1];
-//        }
-//    }
-
-    for (int i = 0; i < epochs; i++) {
-        MatrixXd xMat = tabToMat(flattened_dataset_inputs, sampleCount);
-        MatrixXd yMat = tabToMat(flattened_dataset_expected_outputs, sampleCount);
-        int p = predict_linear_model_classification(W, flattened_dataset_inputs, sampleCount);
-        W[0] += alpha * ((yMat.coeff(i, 0)) - p) * 1.0;
-        for (int k = 1; k < sizeof(W); k++) {
-//            double* weight = matToTab(wMat);
-//            double* sample = matToTab(xMat.row(k));
-            W[k] += alpha * (yMat.coeff(k, 0)) - p * xMat.coeff(k - 1, 0);
-
-//            destroy_my_model(weight);
-//            destroy_my_model(sample);
+                                                                 int epochs){
+    for (int it = 0; it < epochs; it++){
+        int k = rand() % W_len;
+        double Yk = flattened_dataset_expected_outputs[k];
+        double* Xk = flattened_dataset_inputs + k * W_len;
+        double gXk = predict_linear_model_classification(W, Xk, W_len);
+        W[0] += alpha * (Yk - gXk) * 1.0;
+        for(int i=1; i < (W_len+1); i++){
+            W[k] += alpha * (Yk - gXk)* Xk[i - 1];
         }
     }
-}
 
+//    int input_dim = W_len - 1;
+//    int samples_count = flattened_inputs_len / input_dim;
+//    for (int it = 0; it < epochs; it++) {
+//        int k = ((int) rand() % (samples_count));
+//        int first = k * input_dim;
+//        int last = (k+1) * input_dim;
+//        double* Xk = separer_tab(flattened_dataset_inputs, first, last);
+//        double Yk = flattened_dataset_expected_outputs[k];
+//        double gXk = predict_linear_model_classification(W, Xk, W_len);
+//        W[0] += alpha * (Yk-gXk) * 1.0;
+//        for (int j = 1; j < W_len; j++) {
+//            W[j] += alpha * (Yk - gXk) * Xk[j-1];
+//        }
+//    }
+}
 
 /*
  * Définitions du PMC
  */
-
-
 DLLEXPORT PMC *create_PMC_model(int *npl, int npl_len) {
     PMC *model = new PMC[1];
     for (int l = 0; l < npl_len; l++) {

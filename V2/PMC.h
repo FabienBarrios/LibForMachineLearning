@@ -73,7 +73,6 @@ typedef struct PMC_model {
                     for(int j = 1; j < d[l] + 1; j++){
                         W[l][i][j] -= alpha * X[l - 1][i] * deltas[l][j];
                     }
-
                 }
             }
         }
